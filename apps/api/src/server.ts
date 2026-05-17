@@ -5,7 +5,7 @@ import { createServer } from 'node:http'
 import { config } from './config'
 import { logger } from './utils/logger'
 import { prisma } from './db/prisma'
-import { errorHandler } from './middleware/errorhandler'
+import { errorHandler } from './middleware/errorHandler'
 import { generalLimiter } from './middleware/rateLimiter'
 
 const app = express()
