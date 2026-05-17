@@ -11,6 +11,9 @@ import { initSocket } from './socket/socket.gateway'
 import { startCleanupJob } from './jobs/cleanup.job'
 import inboxRoutes from './routes/inbox.routes'
 import { emitNewEmail } from './socket/socket.gateway'
+import webhookRoutes from './routes/webhook.routes'
+
+
 
 
 const app = express()
@@ -64,6 +67,12 @@ if (config.NODE_ENV === 'development') {
     res.json({ ok: true })
   })
 }
+
+app.use(
+  '/api/webhooks',
+  express.urlencoded({ extended: true }),
+  webhookRoutes
+)
 
 app.use('/api/inboxes', inboxRoutes)
 

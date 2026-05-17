@@ -36,9 +36,10 @@ export function useInbox() {
   }, [generate])
 
   useEffect(() => {
-    if (!socket || !inbox || socketStatus !== 'connected') return
+    const address = inbox?.address
+    if (!socket || !address || socketStatus !== 'connected') return
 
-    socket.emit('inbox:subscribe', inbox.address)
+    socket.emit('inbox:subscribe', address)
 
     function onNewEmail(email: EmailSummary) {
       setEmails((prev) => [email, ...prev])
@@ -60,7 +61,7 @@ export function useInbox() {
     socket.on('inbox:error', onInboxError)
 
     return () => {
-      socket.emit('inbox:unsubscribe', inbox.address)
+      socket.emit('inbox:unsubscribe', address)
       socket.off('email:new', onNewEmail)
       socket.off('inbox:expired', onExpired)
       socket.off('inbox:error', onInboxError)
