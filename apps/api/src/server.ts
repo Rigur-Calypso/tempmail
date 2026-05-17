@@ -7,10 +7,16 @@ import { logger } from './utils/logger'
 import { prisma } from './db/prisma'
 import { errorHandler } from './middleware/errorHandler'
 import { generalLimiter } from './middleware/rateLimiter'
+import { initSocket } from './socket/socket.gateway'
+import { startCleanupJob } from './jobs/cleanup.job'
 import inboxRoutes from './routes/inbox.routes'
+import { emitNewEmail } from './socket/socket.gateway'
+
 
 const app = express()
 const httpServer = createServer(app)
+
+initSocket(httpServer)
 
 app.set('trust proxy', 1)
 
@@ -43,6 +49,22 @@ app.get('/health', async (_req, res) => {
   }
 })
 
+if (config.NODE_ENV === 'development') {
+  app.post('/api/test/emit-email', express.json(), (req, res) => {
+    const { address, email } = req.body
+    emitNewEmail(address, email)
+    res.json({ ok: true })
+  })
+}
+
+if (config.NODE_ENV === 'development') {
+  app.post('/api/test/emit-email', (req, res) => {
+    const { address, email } = req.body
+    emitNewEmail(address, email)
+    res.json({ ok: true })
+  })
+}
+
 app.use('/api/inboxes', inboxRoutes)
 
 app.use(errorHandler)
@@ -51,6 +73,8 @@ async function start() {
   try {
     await prisma.$connect()
     logger.info('Database connected')
+
+    startCleanupJob()
 
     httpServer.listen(config.PORT, () => {
       logger.info(
