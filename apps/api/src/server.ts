@@ -7,6 +7,7 @@ import { logger } from './utils/logger'
 import { prisma } from './db/prisma'
 import { errorHandler } from './middleware/errorHandler'
 import { generalLimiter } from './middleware/rateLimiter'
+import inboxRoutes from './routes/inbox.routes'
 
 const app = express()
 const httpServer = createServer(app)
@@ -41,6 +42,8 @@ app.get('/health', async (_req, res) => {
     })
   }
 })
+
+app.use('/api/inboxes', inboxRoutes)
 
 app.use(errorHandler)
 
