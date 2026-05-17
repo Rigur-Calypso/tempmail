@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Domain {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  inboxes Inbox[]
+
+  @@map("domains")
+}
+
+model Inbox {
+  id            String   @id @default(uuid())
+  address       String   @unique
+  domainId      String   @map("domain_id")
+  alias         String?
+  expiresAt     DateTime @map("expires_at")
+  isActive      Boolean  @default(true) @map("is_active")
+  ipCreatedFrom String?  @map("ip_created_from")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  domain Domain  @relation(fields: [domainId], references: [id])
+  emails Email[]
+
+  @@index([address])
+  @@index([expiresAt])
+  @@index([ipCreatedFrom])
+  @@map("inboxes")
+}
+
+model Email {
+  id            String   @id @default(uuid())
+  inboxId       String   @map("inbox_id")
+  fromAddress   String   @map("from_address")
+  fromName      String?  @map("from_name")
+  subject       String   @default("(no subject)")
+  bodyHtml      String?  @map("body_html")
+  bodyText      String?  @map("body_text")
+  isRead        Boolean  @default(false) @map("is_read")
+  burnAfterRead Boolean  @default(false) @map("burn_after_read")
+  receivedAt    DateTime @default(now()) @map("received_at")
+
+  inbox       Inbox        @relation(fields: [inboxId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+
+  @@index([inboxId])
+  @@index([receivedAt])
+  @@map("emails")
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  emailId    String   @map("email_id")
+  filename   String
+  mimeType   String   @map("mime_type")
+  sizeBytes  Int      @map("size_bytes")
+  storageKey String   @map("storage_key")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  email Email @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
