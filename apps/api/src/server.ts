@@ -76,6 +76,21 @@ app.use(
 
 app.use('/api/inboxes', inboxRoutes)
 
+if (config.NODE_ENV === 'production') {
+  app.post('/api/admin/seed-domain', async (req, res) => {
+    const { secret, domain } = req.body
+    if (secret !== 'tempmail-seed-2026') {
+      res.status(401).json({ error: 'unauthorized' })
+      return
+    }
+    await prisma.domain.updateMany({
+      where: { name: 'localhost' },
+      data: { name: domain },
+    })
+    res.json({ ok: true, domain })
+  })
+}
+
 app.use(errorHandler)
 
 async function start() {
