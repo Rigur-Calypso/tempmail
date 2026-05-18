@@ -2,7 +2,9 @@ import axios from 'axios'
 import type { ApiResponse, Inbox } from '../types'
 
 const client = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api`
+    : '/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

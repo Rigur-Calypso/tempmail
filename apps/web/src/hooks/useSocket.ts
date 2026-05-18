@@ -10,7 +10,8 @@ export function useSocket() {
 
   useEffect(() => {
     if (!globalSocket) {
-      globalSocket = io('/', {
+      const serverUrl = import.meta.env.VITE_API_URL ?? '/'
+      globalSocket = io(serverUrl, {
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
