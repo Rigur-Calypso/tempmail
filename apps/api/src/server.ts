@@ -9,12 +9,9 @@ import { errorHandler } from './middleware/errorHandler'
 import { generalLimiter } from './middleware/rateLimiter'
 import { initSocket } from './socket/socket.gateway'
 import { startCleanupJob } from './jobs/cleanup.job'
-import inboxRoutes from './routes/inbox.routes'
 import { emitNewEmail } from './socket/socket.gateway'
+import inboxRoutes from './routes/inbox.routes'
 import webhookRoutes from './routes/webhook.routes'
-
-
-
 
 const app = express()
 const httpServer = createServer(app)
@@ -52,13 +49,23 @@ app.get('/health', async (_req, res) => {
   }
 })
 
-if (config.NODE_ENV === 'development') {
-  app.post('/api/test/emit-email', express.json(), (req, res) => {
-    const { address, email } = req.body
-    emitNewEmail(address, email)
-    res.json({ ok: true })
+app.post('/api/admin/seed-domain', async (req, res) => {
+  const { secret, domain } = req.body
+  if (secret !== 'tempmail-seed-2026') {
+    res.status(401).json({ error: 'unauthorized' })
+    return
+  }
+  await prisma.domain.updateMany({
+    where: {},
+    data: { name: domain },
   })
-}
+  res.json({ ok: true, domain })
+})
+
+app.get('/api/admin/check-domain', async (_req, res) => {
+  const domains = await prisma.domain.findMany()
+  res.json(domains)
+})
 
 if (config.NODE_ENV === 'development') {
   app.post('/api/test/emit-email', (req, res) => {
@@ -75,21 +82,6 @@ app.use(
 )
 
 app.use('/api/inboxes', inboxRoutes)
-
-if (config.NODE_ENV === 'production') {
-  app.post('/api/admin/seed-domain', async (req, res) => {
-    const { secret, domain } = req.body
-    if (secret !== 'tempmail-seed-2026') {
-      res.status(401).json({ error: 'unauthorized' })
-      return
-    }
-    await prisma.domain.updateMany({
-      where: { name: 'localhost' },
-      data: { name: domain },
-    })
-    res.json({ ok: true, domain })
-  })
-}
 
 app.use(errorHandler)
 
