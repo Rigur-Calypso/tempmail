@@ -49,32 +49,6 @@ app.get('/health', async (_req, res) => {
   }
 })
 
-app.post('/api/admin/seed-domain', async (req, res) => {
-  const { secret, domain } = req.body
-  if (secret !== 'tempmail-seed-2026') {
-    res.status(401).json({ error: 'unauthorized' })
-    return
-  }
-  await prisma.domain.updateMany({
-    where: {},
-    data: { name: domain },
-  })
-  res.json({ ok: true, domain })
-})
-
-app.get('/api/admin/check-domain', async (_req, res) => {
-  const domains = await prisma.domain.findMany()
-  res.json(domains)
-})
-
-if (config.NODE_ENV === 'development') {
-  app.post('/api/test/emit-email', (req, res) => {
-    const { address, email } = req.body
-    emitNewEmail(address, email)
-    res.json({ ok: true })
-  })
-}
-
 app.use(
   '/api/webhooks',
   express.urlencoded({ extended: true }),
