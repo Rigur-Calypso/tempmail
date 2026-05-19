@@ -9,7 +9,6 @@ import { errorHandler } from './middleware/errorHandler'
 import { generalLimiter } from './middleware/rateLimiter'
 import { initSocket } from './socket/socket.gateway'
 import { startCleanupJob } from './jobs/cleanup.job'
-import { emitNewEmail } from './socket/socket.gateway'
 import inboxRoutes from './routes/inbox.routes'
 import webhookRoutes from './routes/webhook.routes'
 
